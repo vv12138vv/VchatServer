@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QTcpServer>
+#include <QTcpSocket>
 
 class Server : public QTcpServer {
 Q_OBJECT
@@ -14,6 +15,8 @@ Q_OBJECT
 public:
     explicit Server(QObject *parent = nullptr);
 
+private:
+    QTcpSocket socket;
 signals:
 
 public slots:

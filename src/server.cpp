@@ -5,6 +5,5 @@
 #include "server.h"
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
-    listen(QHostAddress::Any,8888);
-
+    listen(QHostAddress::Any,8888);//开启端口服务
 }
