@@ -12,16 +12,23 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        Network
         REQUIRED)
 
 add_executable(VchatServer src/main.cpp
-        src/qt6clionwiget.cpp
-        src/qt6clionwiget.h
-        src/qt6clionwiget.ui)
+        src/serverui.cpp
+        src/serverui.h
+        src/serverui.ui
+        src/server.cpp
+        src/server.h
+        src/logger.cpp
+        src/logger.h
+)
 target_link_libraries(VchatServer
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::Network
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
