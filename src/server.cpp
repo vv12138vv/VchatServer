@@ -39,9 +39,6 @@ void Server::onNewConnection() {
 }
 
 
-Logger *Server::getLogger() {
-    return logger;
-}
 
 Server::~Server() {
     if (!logger.isNull()) {
@@ -74,6 +71,10 @@ void Server::onReadyRead() {
 
 void Server::onBytesWritten(qint64) {
 
+}
+
+Logger *Server::getLogger() {
+    return logger;
 }
 
 QString Server::generateSocketInfo(const QTcpSocket &socket) {
