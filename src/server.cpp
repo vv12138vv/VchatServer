@@ -7,33 +7,77 @@
 #include <utility>
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
+    logger = new Logger(this);
 }
 
 
 bool Server::listenTo(quint32 port) {
-    if (!this->listen(QHostAddress::Any, port)) {
+    if (!this->listen(QHostAddress::AnyIPv4, port)) {
         //Todo need error log
+        return false;
     }
-    //Todo need log
-    logger(QString("成功监听端口：%1").arg(port));
+    logger->log(Logger::LogType::StartListen, QString("成功监听端口：%1").arg(port));
     connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
     return true;
 }
 
 void Server::onNewConnection() {
-//    QPointer<QTcpSocket> newSocket = this->nextPendingConnection();
-//    connect(newSocket, SIGNAL(newMsgReceived()), this, SLOT(onReceiveMsg));
-//    connect(newSocket, SIGNAL(disconnected()), this, SLOT(onDistconnectd()));
-//    sockets_.push_back(newSocket);
+    QPointer<QTcpSocket> newSocket = this->nextPendingConnection();
+    connect(newSocket, SIGNAL(connected()), this, SLOT(onConnected()));
+    connect(newSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
+    connect(newSocket, SIGNAL(readyRead()), this, SLOT(onDataReady()));
+    connect(newSocket, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten(qint64)));
+
+    QString socketInfo= generateSocketInfo(*newSocket);
+    logger->log(Logger::LogType::NewConnection,
+                QString("新连接: ") + socketInfo);
+    sockets_.insert(socketInfo,newSocket);
 }
 
-void Server::logger(const QString& logMsg){
-    emit newLog(logMsg);
+
+Logger *Server::getLogger() {
+    return logger;
 }
 
-void Server::onReceiveMsg() {
+Server::~Server() {
+    if (!logger.isNull()) {
+        delete logger;
+    }
+    for(auto it=sockets_.begin();it!=sockets_.end();it++){
+        delete it.value();
+    }
+}
+
+void Server::onConnected() {
 
 }
+
+void Server::onDisconnected() {
+    auto socket=dynamic_cast<QTcpSocket*>(sender());
+    if(socket!= nullptr){
+        QString socketInfo= generateSocketInfo(*socket);
+        if(sockets_.contains(socketInfo)){
+            sockets_.remove(socketInfo);
+        }
+        logger->log(Logger::LogType::EndConnection,QString("连接断开: ") + socketInfo);
+    }
+}
+
+void Server::onDataReady() {
+
+}
+
+void Server::onBytesWritten(qint64) {
+
+}
+
+QString Server::generateSocketInfo(const QTcpSocket &socket) {
+    QString newSocketIp = socket.peerAddress().toString().remove("::ffff:");
+    quint16 newSocketPort = socket.peerPort();
+    QString socketInfo=newSocketIp+":"+QString::number(newSocketPort);
+    return socketInfo;
+}
+
 
 
 

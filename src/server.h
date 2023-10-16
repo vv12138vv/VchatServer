@@ -10,31 +10,30 @@
 #include <QTcpSocket>
 #include<QDebug>
 #include <QPointer>
+#include"logger.h"
 
 class Server : public QTcpServer {
 Q_OBJECT
 
 private:
-    QVector<QPointer<QTcpSocket>> sockets_;
-
-    void logger(const QString& logMsg);
-
+    QPointer<Logger> logger;
+    QHash<QString,QPointer<QTcpSocket>> sockets_;//socket记录
 public:
     explicit Server(QObject *parent = nullptr);
-
+    Logger* getLogger();
     bool listenTo(quint32 port);
-
-signals:
-
-    void newLog(const QString& logMsg);
+    ~Server() override;
+    static QString generateSocketInfo(const QTcpSocket& socket);
 
 public slots:
-
+    void onConnected();
+    void onDisconnected();
+    void onDataReady();
+    void onBytesWritten(qint64);
 private slots:
 
     void onNewConnection();
 
-    void onReceiveMsg();
 };
 
 

@@ -21,7 +21,7 @@ ServerUi::~ServerUi() {
 }
 void ServerUi::initSlots() {
     connect(ui->portInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
-    connect(server.get(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));
+    connect(server->getLogger(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));
     connect(ui->serverStartBtn, SIGNAL(clicked(bool)),this, SLOT(onServerListening()));
 }
 
@@ -41,8 +41,7 @@ void ServerUi::onInputPort() {
             //Todo 错误
         }
         this->inputPort=port;
-    }else{
-
+        return;
     }
 }
 
