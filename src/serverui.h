@@ -27,7 +27,8 @@ public:
 private slots:
     void onLog(const QString& logMsg);
     void onInputPort();
-    void onServerListening();
+    void onServerStartListen();
+    void onSocketListUpdate();
 };
 
 

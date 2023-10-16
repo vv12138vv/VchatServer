@@ -22,7 +22,8 @@ ServerUi::~ServerUi() {
 void ServerUi::initSlots() {
     connect(ui->portInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
     connect(server->getLogger(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));
-    connect(ui->serverStartBtn, SIGNAL(clicked(bool)),this, SLOT(onServerListening()));
+    connect(ui->serverStartBtn, SIGNAL(clicked(bool)),this, SLOT(onServerStartListen()));
+    connect(server, SIGNAL(socketsUpdate()),this,SLOT(onSocketListUpdate()));
 }
 
 void ServerUi::onLog(const QString &logMsg) {
@@ -45,9 +46,25 @@ void ServerUi::onInputPort() {
     }
 }
 
-void ServerUi::onServerListening() {
+void ServerUi::onServerStartListen() {
     if(inputPort==0){
         return;
     }
-    server->listenTo(inputPort);
+    if(server->isListening()){
+        server->endListen();
+        ui->serverStartBtn->setText("Listen");
+    }else{
+        bool ifListen=server->listenTo(inputPort);
+        if(ifListen){
+            ui->serverStartBtn->setText("Stop");
+        }
+    }
+}
+
+void ServerUi::onSocketListUpdate(){
+    ui->socketList->clear();
+    auto socketList=server->getSockets();
+    for(auto it=socketList.begin();it!=socketList.end();it++){
+        ui->socketList->addItem(it.key());
+    }
 }

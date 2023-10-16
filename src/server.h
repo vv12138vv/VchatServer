@@ -20,19 +20,23 @@ private:
     QHash<QString,QPointer<QTcpSocket>> sockets_;//socket记录
 public:
     explicit Server(QObject *parent = nullptr);
+    ~Server() override;
     Logger* getLogger();
     bool listenTo(quint32 port);
-    ~Server() override;
+    void endListen();
     static QString generateSocketInfo(const QTcpSocket& socket);
+    const QHash<QString,QPointer<QTcpSocket>>& getSockets();
+    signals:
+    void socketsUpdate();
 
 public slots:
     void onConnected();
     void onDisconnected();
-    void onDataReady();
+    void onReadyRead();
     void onBytesWritten(qint64);
+    void onNewConnection();
 private slots:
 
-    void onNewConnection();
 
 };
 
