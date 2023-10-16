@@ -8,18 +8,33 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include<QDebug>
+#include <QPointer>
 
 class Server : public QTcpServer {
 Q_OBJECT
 
+private:
+    QVector<QPointer<QTcpSocket>> sockets_;
+
+    void logger(const QString& logMsg);
+
 public:
     explicit Server(QObject *parent = nullptr);
 
-private:
-    QTcpSocket socket;
+    bool listenTo(quint32 port);
+
 signals:
 
+    void newLog(const QString& logMsg);
+
 public slots:
+
+private slots:
+
+    void onNewConnection();
+
+    void onReceiveMsg();
 };
 
 

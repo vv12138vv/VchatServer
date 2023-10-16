@@ -4,6 +4,7 @@
 
 // You may need to build the project (run Qt uic code generator) to get "ui_ServerUi.h" resolved
 
+#include <QRegularExpression>
 #include "serverui.h"
 #include "ui_ServerUi.h"
 
@@ -11,8 +12,43 @@
 ServerUi::ServerUi(QWidget *parent) :
         QWidget(parent), ui(new Ui::ServerUi) {
     ui->setupUi(this);
+    server = new Server(this);
+    initSlots();
 }
 
 ServerUi::~ServerUi() {
     delete ui;
+}
+void ServerUi::initSlots() {
+    connect(ui->portInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
+    connect(server.get(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));
+    connect(ui->serverStartBtn, SIGNAL(clicked(bool)),this, SLOT(onServerListening()));
+}
+
+void ServerUi::onLog(const QString &logMsg) {
+    ui->systemTextBrowser->setText(ui->systemTextBrowser->toPlainText() + logMsg + '\n');
+    ui->systemTextBrowser->textCursor().movePosition(QTextCursor::End);
+}
+
+void ServerUi::onInputPort() {
+    QString text=ui->portInput->text();
+    QRegularExpression regExp("^[0-9]+$");//正则表达式
+    auto match=regExp.match(text);
+    bool isNumber=match.hasMatch();//Todo 已判断是否是纯数字，将来可能需要输入检测
+    if(isNumber){
+        quint32 port=text.toInt();
+        if(port>=65535||port<=1024){
+            //Todo 错误
+        }
+        this->inputPort=port;
+    }else{
+
+    }
+}
+
+void ServerUi::onServerListening() {
+    if(inputPort==0){
+        return;
+    }
+    server->listenTo(inputPort);
 }

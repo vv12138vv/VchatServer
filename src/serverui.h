@@ -15,14 +15,19 @@ QT_END_NAMESPACE
 class ServerUi : public QWidget {
 Q_OBJECT
 
-public:
-    explicit ServerUi(QWidget *parent = nullptr);
-
-    ~ServerUi() override;
-
 private:
     Ui::ServerUi *ui;
-    Server server;
+    QPointer<Server> server;
+    quint32 inputPort=0;
+    void initSlots();
+public:
+    explicit ServerUi(QWidget *parent = nullptr);
+    ~ServerUi() override;
+
+private slots:
+    void onLog(const QString& logMsg);
+    void onInputPort();
+    void onServerListening();
 };
 
 
