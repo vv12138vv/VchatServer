@@ -20,7 +20,8 @@ ServerUi::~ServerUi() {
     delete ui;
 }
 void ServerUi::initSlots() {
-    connect(ui->portInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
+//    connect(ui->tcpPortInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
+    connect(ui->tcpPortInput,&QLineEdit::editingFinished,this,&ServerUi::onInputPort);
     connect(server->getLogger(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));
     connect(ui->serverStartBtn, SIGNAL(clicked(bool)),this, SLOT(onServerStartListen()));
     connect(server, SIGNAL(socketsUpdate()),this,SLOT(onSocketListUpdate()));
@@ -32,7 +33,7 @@ void ServerUi::onLog(const QString &logMsg) {
 }
 
 void ServerUi::onInputPort() {
-    QString text=ui->portInput->text();
+    QString text=ui->tcpPortInput->text();
     QRegularExpression regExp("^[0-9]+$");//正则表达式
     auto match=regExp.match(text);
     bool isNumber=match.hasMatch();//Todo 已判断是否是纯数字，将来可能需要输入检测
@@ -41,20 +42,20 @@ void ServerUi::onInputPort() {
         if(port>=65535||port<=1024){
             //Todo 错误
         }
-        this->inputPort=port;
+        this->tcpPort=port;
         return;
     }
 }
 
 void ServerUi::onServerStartListen() {
-    if(inputPort==0){
+    if(tcpPort == 0){
         return;
     }
     if(server->isListening()){
         server->endListen();
         ui->serverStartBtn->setText("Listen");
     }else{
-        bool ifListen=server->listenTo(inputPort);
+        bool ifListen=server->listenTo(tcpPort);
         if(ifListen){
             ui->serverStartBtn->setText("Stop");
         }

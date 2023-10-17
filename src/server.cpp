@@ -8,6 +8,7 @@
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
     logger = new Logger(this);
+    udpSocket_=new QUdpSocket(this);
 }
 
 
@@ -16,8 +17,13 @@ bool Server::listenTo(quint32 port) {
         //Todo need error log
         return false;
     }
-    logger->log(Logger::LogType::StartListen, QString("成功监听端口：%1").arg(port));
-    connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    udpSocket_->bind(QHostAddress::AnyIPv4,port+1);
+    logger->log(Logger::LogType::StartListen, QString("Tcp成功监听端口：%1").arg(port));
+    logger->log(Logger::LogType::StartListen, QString("Ucp成功监听端口：%1").arg(port+1));
+//    connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    connect(this, &Server::newConnection, this, &Server::onNewConnection);
+    connect(udpSocket_,&QUdpSocket::readyRead,this,&Server::onReadPendingDatagrams);
+//    connect(udpSocket_, SIGNAL(readyRead()),this, SLOT(onReadPendingDatagrams()));
     return true;
 }
 
@@ -26,11 +32,10 @@ void Server::onNewConnection() {
     if (newSocket == nullptr) {
         return;
     }
-    connect(newSocket, SIGNAL(connected()), this, SLOT(onConnected()));
-    connect(newSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
-    connect(newSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-    connect(newSocket, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten(qint64)));
-
+//    connect(newSocket, SIGNAL(connected()), this, SLOT(onConnected()));
+    connect(newSocket, &QTcpSocket::connected, this, &Server::onConnected);
+//    connect(newSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
+    connect(newSocket,&QTcpSocket::disconnected,this,&Server::onDisconnected);
     QString socketInfo = generateSocketInfo(*newSocket);
     logger->log(Logger::LogType::NewConnection,
                 QString("新连接: ") + socketInfo);
@@ -60,8 +65,8 @@ void Server::onDisconnected() {
         if (sockets_.contains(socketInfo)) {
             sockets_.remove(socketInfo);
             emit socketsUpdate();
+            logger->log(Logger::LogType::EndConnection, QString("连接断开: ") + socketInfo);
         }
-        logger->log(Logger::LogType::EndConnection, QString("连接断开: ") + socketInfo);
     }
 }
 
@@ -90,6 +95,10 @@ const QHash<QString, QPointer<QTcpSocket>> &Server::getSockets() {
 
 void Server::endListen() {
     this->close();
+}
+
+void Server::onReadPendingDatagrams() {
+    qDebug()<<"receive"<<"\n";
 }
 
 

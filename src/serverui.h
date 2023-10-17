@@ -18,7 +18,7 @@ Q_OBJECT
 private:
     Ui::ServerUi *ui;
     QPointer<Server> server;
-    quint32 inputPort=0;
+    quint32 tcpPort=0;
     void initSlots();
 public:
     explicit ServerUi(QWidget *parent = nullptr);
