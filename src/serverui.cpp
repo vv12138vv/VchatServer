@@ -19,7 +19,7 @@ ServerUi::ServerUi(QWidget *parent) :
 ServerUi::~ServerUi() {
     delete ui;
 }
-void ServerUi::initSlots() {
+void ServerUi::initSlots() {//Todo refactor connect
 //    connect(ui->tcpPortInput, SIGNAL(editingFinished()),this, SLOT(onInputPort()));
     connect(ui->tcpPortInput,&QLineEdit::editingFinished,this,&ServerUi::onInputPort);
     connect(server->getLogger(), SIGNAL(newLog(const QString&)), this, SLOT(onLog(const QString &)));

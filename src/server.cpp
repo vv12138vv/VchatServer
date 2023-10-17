@@ -32,10 +32,9 @@ void Server::onNewConnection() {
     if (newSocket == nullptr) {
         return;
     }
-//    connect(newSocket, SIGNAL(connected()), this, SLOT(onConnected()));
     connect(newSocket, &QTcpSocket::connected, this, &Server::onConnected);
-//    connect(newSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
     connect(newSocket,&QTcpSocket::disconnected,this,&Server::onDisconnected);
+    connect(newSocket, &QTcpSocket::readyRead, this, &Server::onTcpReadyRead);
     QString socketInfo = generateSocketInfo(*newSocket);
     logger->log(Logger::LogType::NewConnection,
                 QString("新连接: ") + socketInfo);
@@ -48,6 +47,9 @@ void Server::onNewConnection() {
 Server::~Server() {
     if (!logger.isNull()) {
         delete logger;
+    }
+    if(!udpSocket_.isNull()){
+        delete udpSocket_;
     }
     for (auto it = sockets_.begin(); it != sockets_.end(); it++) {
         delete it.value();
@@ -70,19 +72,23 @@ void Server::onDisconnected() {
     }
 }
 
-void Server::onReadyRead() {
+void Server::onTcpReadyRead() {
+    QPointer<QTcpSocket> socket = dynamic_cast<QTcpSocket *>(sender());
+    if(socket.isNull()){
+        return;
+    }
+    QByteArray data=socket->readAll();
+    QString msg=QString::fromUtf8(data);
+    QString outputMsg= generateSocketInfo(*socket);
 
-}
-
-void Server::onBytesWritten(qint64) {
-
+    logger->log(outputMsg+":"+msg);
 }
 
 Logger *Server::getLogger() {
     return logger;
 }
 
-QString Server::generateSocketInfo(const QTcpSocket &socket) {
+QString Server::generateSocketInfo(const QAbstractSocket &socket) {
     QString newSocketIp = socket.peerAddress().toString().remove("::ffff:");
     quint16 newSocketPort = socket.peerPort();
     QString socketInfo = newSocketIp + ":" + QString::number(newSocketPort);
@@ -98,7 +104,18 @@ void Server::endListen() {
 }
 
 void Server::onReadPendingDatagrams() {
-    qDebug()<<"receive"<<"\n";
+    while(udpSocket_->hasPendingDatagrams()){
+        QNetworkDatagram datagram=udpSocket_->receiveDatagram();
+        processDataGram(qMove(datagram));
+    }
+}
+
+void Server::processDataGram(const QNetworkDatagram &datagram) {
+    qDebug()<<datagram.data()<<"\n";
+}
+
+void Server::onBytesWritten(qint64) {
+
 }
 
 

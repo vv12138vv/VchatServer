@@ -12,6 +12,7 @@
 #include <QPointer>
 #include"logger.h"
 #include<QUdpSocket>
+#include<QNetworkDatagram>
 
 class Server : public QTcpServer {
 Q_OBJECT
@@ -26,15 +27,17 @@ public:
     Logger* getLogger();
     bool listenTo(quint32 port);
     void endListen();
-    static QString generateSocketInfo(const QTcpSocket& socket);
+    static QString generateSocketInfo(const QAbstractSocket& socket);
     const QHash<QString,QPointer<QTcpSocket>>& getSockets();
+    void processDataGram(const QNetworkDatagram& datagram);
+
     signals:
     void socketsUpdate();
 
 public slots:
     void onConnected();
     void onDisconnected();
-    void onReadyRead();
+    void onTcpReadyRead();
     void onBytesWritten(qint64);
     void onNewConnection();
     void onReadPendingDatagrams();
