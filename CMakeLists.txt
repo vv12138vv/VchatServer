@@ -24,6 +24,10 @@ add_executable(VchatServer src/main.cpp
         src/logger.cpp
         src/logger.h
         src/protocal.h
+        src/thread_manager.cpp
+        src/thread_manager.h
+        src/worker.cpp
+        src/worker.h
 )
 target_link_libraries(VchatServer
         Qt::Core

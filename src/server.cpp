@@ -8,7 +8,7 @@
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
     logger = new Logger(this);
-    udpSocket_=new QUdpSocket(this);
+    qDebug()<<"main thread"<<QThread::currentThread()<<"start"<<"\n";
 }
 
 
@@ -17,13 +17,9 @@ bool Server::listenTo(quint32 port) {
         //Todo need error log
         return false;
     }
-    udpSocket_->bind(QHostAddress::AnyIPv4,port+1);
     logger->log(Logger::LogType::StartListen, QString("Tcp成功监听端口：%1").arg(port));
-    logger->log(Logger::LogType::StartListen, QString("Ucp成功监听端口：%1").arg(port+1));
-//    connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
-    connect(this, &Server::newConnection, this, &Server::onNewConnection);
-    connect(udpSocket_,&QUdpSocket::readyRead,this,&Server::onReadPendingDatagrams);
-//    connect(udpSocket_, SIGNAL(readyRead()),this, SLOT(onReadPendingDatagrams()));
+//    connect(this, &Server::newConnection, this, &Server::onNewConnection);
+//    connect(udpSocket_,&QUdpSocket::readyRead,this,&Server::onReadPendingDatagrams);
     return true;
 }
 
@@ -116,6 +112,16 @@ void Server::processDataGram(const QNetworkDatagram &datagram) {
 
 void Server::onBytesWritten(qint64) {
 
+}
+
+void Server::incomingConnection(qintptr handle) {
+    ThreadManager& threadManager=ThreadManager::getInstance();
+    QPointer<QThread> thread=threadManager.getThread();
+    QPointer<Worker> worker=new Worker(handle);
+    worker->moveToThread(thread);
+    connect(thread,&QThread::started,worker,&Worker::working);
+    thread->start();
+    emit newConnection();
 }
 
 

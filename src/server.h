@@ -13,7 +13,8 @@
 #include"logger.h"
 #include<QUdpSocket>
 #include<QNetworkDatagram>
-
+#include"thread_manager.h"
+#include"worker.h"
 class Server : public QTcpServer {
 Q_OBJECT
 
@@ -30,7 +31,7 @@ public:
     static QString generateSocketInfo(const QAbstractSocket& socket);
     const QHash<QString,QPointer<QTcpSocket>>& getSockets();
     void processDataGram(const QNetworkDatagram& datagram);
-
+    void incomingConnection(qintptr handle) override;
     signals:
     void socketsUpdate();
 

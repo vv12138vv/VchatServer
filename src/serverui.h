@@ -20,6 +20,8 @@ private:
     QPointer<Server> server;
     quint32 tcpPort=0;
     void initSlots();
+protected:
+
 public:
     explicit ServerUi(QWidget *parent = nullptr);
     ~ServerUi() override;
@@ -29,6 +31,7 @@ private slots:
     void onInputPort();
     void onServerStartListen();
     void onSocketListUpdate();
+
 };
 
 
